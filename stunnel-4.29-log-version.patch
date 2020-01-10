@@ -1,0 +1,11 @@
+diff -up stunnel-4.29/src/client.c.log-version stunnel-4.29/src/client.c
+--- stunnel-4.29/src/client.c.log-version	2009-10-30 13:41:35.000000000 +0100
++++ stunnel-4.29/src/client.c	2016-01-08 15:56:58.966322409 +0100
+@@ -724,6 +724,7 @@ static void print_cipher(CLI *c) { /* pr
+     SSL_CIPHER *cipher;
+     char buf[STRLEN], *i, *j;
+ 
++    s_log(LOG_INFO, "Negotiated protocol version: %s", SSL_get_version(c->ssl));
+     cipher=(SSL_CIPHER *)SSL_get_current_cipher(c->ssl);
+     SSL_CIPHER_description(cipher, buf, STRLEN);
+     i=j=buf;

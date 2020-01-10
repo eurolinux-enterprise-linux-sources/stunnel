@@ -1,0 +1,144 @@
+diff -up stunnel-4.29/doc/stunnel.html.tls stunnel-4.29/doc/stunnel.html
+--- stunnel-4.29/doc/stunnel.html.tls	2016-01-08 16:32:52.000000000 +0100
++++ stunnel-4.29/doc/stunnel.html	2016-01-12 14:57:49.961191314 +0100
+@@ -223,7 +223,7 @@ engine cryptogaphic module.</p>
+ <p>Enable or disable FIPS 140-2 mode.</p>
+ <p>This option allows to disable entering FIPS mode if stunnel was compiled with
+ FIPS 140-2 support.</p>
+-<p>default: yes</p>
++<p>default: no</p>
+ </dd>
+ <dt><strong><a name="no" class="item"><strong>foreground</strong> = yes | no (Unix only)</a></strong></dt>
+ 
+@@ -535,7 +535,8 @@ the following option can be used:</p>
+ 
+ <dd>
+ <p>select version of SSL protocol</p>
+-<p>Allowed options: all, SSLv2, SSLv3, TLSv1</p>
++<p>Allowed options: all, SSLv2, SSLv3, TLSv1, TLSv1.1, TLSv1.2</p>
++<p>default: all</p>
+ </dd>
+ <dt><strong><a name="bytes" class="item"><strong>stack</strong> = bytes (except for FORK model)</a></strong></dt>
+ 
+diff -up stunnel-4.29/doc/stunnel.pod.tls stunnel-4.29/doc/stunnel.pod
+--- stunnel-4.29/doc/stunnel.pod.tls	2016-01-08 16:32:52.000000000 +0100
++++ stunnel-4.29/doc/stunnel.pod	2016-01-12 14:57:05.373171380 +0100
+@@ -178,7 +178,7 @@ Enable or disable FIPS 140-2 mode.
+ This option allows to disable entering FIPS mode if stunnel was compiled with
+ FIPS 140-2 support.
+ 
+-default: yes
++default: no
+ 
+ =item B<foreground> = yes | no (Unix only)
+ 
+@@ -497,7 +497,9 @@ address of sessiond SSL cache server
+ 
+ select version of SSL protocol
+ 
+-Allowed options: all, SSLv2, SSLv3, TLSv1
++Allowed options: all, SSLv2, SSLv3, TLSv1, TLSv1.1, TLSv1.2
++
++default: all
+ 
+ =item B<stack> = bytes (except for FORK model)
+ 
+diff -up stunnel-4.29/doc/stunnel.8.tls stunnel-4.29/doc/stunnel.8
+--- stunnel-4.29/doc/stunnel.8.tls	2016-01-08 16:32:52.000000000 +0100
++++ stunnel-4.29/doc/stunnel.8	2016-01-12 14:58:24.298976777 +0100
+@@ -199,7 +199,7 @@ Enable or disable \s-1FIPS\s0 140\-2 mod
+ This option allows to disable entering \s-1FIPS\s0 mode if stunnel was compiled with
+ \&\s-1FIPS\s0 140\-2 support.
+ .Sp
+-default: yes
++default: no
+ .IP "\fBforeground\fR = yes | no (Unix only)" 4
+ .IX Item "foreground = yes | no (Unix only)"
+ foreground mode
+@@ -478,7 +478,9 @@ address of sessiond \s-1SSL\s0 cache ser
+ .IX Item "sslVersion = version"
+ select version of \s-1SSL\s0 protocol
+ .Sp
+-Allowed options: all, SSLv2, SSLv3, TLSv1
++Allowed options: all, SSLv2, SSLv3, TLSv1, TLSv1.1, TLSv1.2
++.Sp
++default: all
+ .IP "\fBstack\fR = bytes (except for \s-1FORK\s0 model)" 4
+ .IX Item "stack = bytes (except for FORK model)"
+ thread stack size
+diff -up stunnel-4.29/src/options.c.tls stunnel-4.29/src/options.c
+--- stunnel-4.29/src/options.c.tls	2016-01-08 16:32:52.000000000 +0100
++++ stunnel-4.29/src/options.c	2016-01-12 14:53:08.401750753 +0100
+@@ -222,7 +222,7 @@ static char *global_options(CMD cmd, cha
+ #ifdef USE_FIPS
+     switch(cmd) {
+     case CMD_INIT:
+-        options.option.fips=1;
++        options.option.fips=0;
+         break;
+     case CMD_EXEC:
+         if(strcasecmp(opt, "fips"))
+@@ -630,7 +630,7 @@ static char *service_options(CMD cmd, LO
+     }
+ 
+     /* ciphers */
+-#ifdef USE_FIPS
++#if 0
+ #define STUNNEL_DEFAULT_CIPHER_LIST "FIPS"
+ #else
+ #define STUNNEL_DEFAULT_CIPHER_LIST SSL_DEFAULT_CIPHER_LIST
+@@ -1187,13 +1187,8 @@ static char *service_options(CMD cmd, LO
+     /* sslVersion */
+     switch(cmd) {
+     case CMD_INIT:
+-#ifdef USE_FIPS
+-        section->client_method=(SSL_METHOD *)TLSv1_client_method();
+-        section->server_method=(SSL_METHOD *)TLSv1_server_method();
+-#else
+-        section->client_method=(SSL_METHOD *)SSLv3_client_method();
++        section->client_method=(SSL_METHOD *)SSLv23_client_method();
+         section->server_method=(SSL_METHOD *)SSLv23_server_method();
+-#endif
+         break;
+     case CMD_EXEC:
+         if(strcasecmp(opt, "sslVersion"))
+@@ -1210,18 +1205,20 @@ static char *service_options(CMD cmd, LO
+         } else if(!strcasecmp(arg, "TLSv1")) {
+             section->client_method=(SSL_METHOD *)TLSv1_client_method();
+             section->server_method=(SSL_METHOD *)TLSv1_server_method();
++        } else if(!strcasecmp(arg, "TLSv1.1")) {
++            section->client_method=(SSL_METHOD *)TLSv1_1_client_method();
++            section->server_method=(SSL_METHOD *)TLSv1_1_server_method();
++        } else if(!strcasecmp(arg, "TLSv1.2")) {
++            section->client_method=(SSL_METHOD *)TLSv1_2_client_method();
++            section->server_method=(SSL_METHOD *)TLSv1_2_server_method();
+         } else
+             return "Incorrect version of SSL protocol";
+         return NULL; /* OK */
+     case CMD_DEFAULT:
+-#ifdef USE_FIPS
+-        s_log(LOG_RAW, "%-15s = TLSv1", "sslVersion");
+-#else
+-        s_log(LOG_RAW, "%-15s = SSLv3 for client, all for server", "sslVersion");
+-#endif
++        s_log(LOG_RAW, "%-15s = all", "sslVersion");
+         break;
+     case CMD_HELP:
+-        s_log(LOG_RAW, "%-15s = all|SSLv2|SSLv3|TLSv1 SSL method", "sslVersion");
++        s_log(LOG_RAW, "%-15s = all|SSLv2|SSLv3|TLSv1|TLSv1.1|TLSv1.2 SSL method", "sslVersion");
+         break;
+     }
+ 
+@@ -1745,6 +1742,12 @@ static int parse_ssl_option(char *arg) {
+         {"NO_SSLv2", SSL_OP_NO_SSLv2},
+         {"NO_SSLv3", SSL_OP_NO_SSLv3},
+         {"NO_TLSv1", SSL_OP_NO_TLSv1},
++#ifdef SSL_OP_NO_TLSv1_1
++        {"NO_TLSv1.1", SSL_OP_NO_TLSv1_1},
++#endif
++#ifdef SSL_OP_NO_TLSv1_2
++        {"NO_TLSv1.2", SSL_OP_NO_TLSv1_2},
++#endif
+         {"PKCS1_CHECK_1", SSL_OP_PKCS1_CHECK_1},
+         {"PKCS1_CHECK_2", SSL_OP_PKCS1_CHECK_2},
+         {"NETSCAPE_CA_DN_BUG", SSL_OP_NETSCAPE_CA_DN_BUG},

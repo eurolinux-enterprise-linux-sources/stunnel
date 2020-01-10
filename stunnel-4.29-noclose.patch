@@ -1,0 +1,26 @@
+diff -up stunnel-4.29/src/options.c.noclose stunnel-4.29/src/options.c
+--- stunnel-4.29/src/options.c.noclose	2016-01-08 16:32:09.717491382 +0100
++++ stunnel-4.29/src/options.c	2016-01-08 16:32:09.722491495 +0100
+@@ -1413,7 +1413,7 @@ void parse_config(char *name, char *para
+ #else
+     char *default_config_file="stunnel.conf";
+ #endif
+-    DISK_FILE *df;
++    DISK_FILE *df = NULL;
+     char confline[CONFLINELEN], *arg, *opt, *errstr, *filename;
+     int line_number, i;
+ #ifdef MAX_FD
+@@ -1460,8 +1460,12 @@ void parse_config(char *name, char *para
+             }
+             i=10*i+*arg-'0';
+         }
++        if (i >= 0 && i <= 2) {
++            /* the standard descriptors must not be closed later */
++            i = dup(i);
++        }
+         df=file_fdopen(i);
+-        if(!df) {
++        if(i < 0 || !(df = file_fdopen(i))) {
+             s_log(LOG_RAW, "Invalid file descriptor %s", parameter);
+             syntax(default_config_file);
+         }

@@ -1,0 +1,145 @@
+diff -up stunnel-4.29/doc/stunnel.html.ecdh stunnel-4.29/doc/stunnel.html
+--- stunnel-4.29/doc/stunnel.html.ecdh	2016-01-12 15:02:15.000000000 +0100
++++ stunnel-4.29/doc/stunnel.html	2016-01-12 17:06:20.714677362 +0100
+@@ -401,6 +401,15 @@ be named XXXXXXXX.0 where XXXXXXXX is th
+ <p>Certificate Revocation Lists file</p>
+ <p>This file contains multiple CRLs, used with the <em>verify</em>.</p>
+ </dd>
++<dt><strong><a name="curve_nid" class="item"><strong>curve</strong> = nid</a></strong></dt>
++
++<dd>
++<p>specify ECDH curve name for server</p>
++<p>To get a list of supported curves use:</p>
++<pre>
++    openssl ecparam -list_curves</pre>
++<p>default: prime256v1</p>
++</dd>
+ <dt><strong><a name="delay_yes_no" class="item"><strong>delay</strong> = yes | no</a></strong></dt>
+ 
+ <dd>
+diff -up stunnel-4.29/doc/stunnel.pod.ecdh stunnel-4.29/doc/stunnel.pod
+--- stunnel-4.29/doc/stunnel.pod.ecdh	2016-01-12 15:02:15.000000000 +0100
++++ stunnel-4.29/doc/stunnel.pod	2016-01-12 17:05:32.740590259 +0100
+@@ -368,6 +368,16 @@ Certificate Revocation Lists file
+ 
+ This file contains multiple CRLs, used with the I<verify>.
+ 
++=item B<curve> = nid
++
++specify ECDH curve name for server
++
++To get a list of supported curves use:
++
++    openssl ecparam -list_curves
++
++default: prime256v1
++
+ =item B<delay> = yes | no
+ 
+ delay DNS lookup for 'connect' option
+diff -up stunnel-4.29/doc/stunnel.8.ecdh stunnel-4.29/doc/stunnel.8
+--- stunnel-4.29/doc/stunnel.8.ecdh	2016-01-12 15:02:15.000000000 +0100
++++ stunnel-4.29/doc/stunnel.8	2016-01-12 17:06:56.389485761 +0100
+@@ -362,6 +362,17 @@ be named \s-1XXXXXXXX\s0.0 where \s-1XXX
+ Certificate Revocation Lists file
+ .Sp
+ This file contains multiple CRLs, used with the \fIverify\fR.
++.IP "\fBcurve\fR = nid" 4
++.IX Item "curve = nid"
++specify \s-1ECDH\s0 curve name for server
++.Sp
++To get a list of supported curves use:
++.Sp
++.Vb 1
++\&    openssl ecparam \-list_curves
++.Ve
++.Sp
++default: prime256v1
+ .IP "\fBdelay\fR = yes | no" 4
+ .IX Item "delay = yes | no"
+ delay \s-1DNS\s0 lookup for 'connect' option
+diff -up stunnel-4.29/src/ctx.c.ecdh stunnel-4.29/src/ctx.c
+--- stunnel-4.29/src/ctx.c.ecdh	2009-10-01 10:28:31.000000000 +0200
++++ stunnel-4.29/src/ctx.c	2016-01-12 15:12:11.774857239 +0100
+@@ -57,6 +57,7 @@ static RSA *make_temp_key(int);
+ #endif /* NO_RSA */
+ #ifdef USE_DH
+ static int init_dh(SSL_CTX *, LOCAL_OPTIONS *);
++static int init_ecdh(LOCAL_OPTIONS *);
+ #endif /* USE_DH */
+ 
+ /* loading certificate */
+@@ -117,6 +118,7 @@ void context_init(LOCAL_OPTIONS *section
+ #ifdef USE_DH
+         if(init_dh(section->ctx, section))
+             s_log(LOG_WARNING, "Diffie-Hellman initialization failed");
++        init_ecdh(section); /* ignore the result (errors are not critical) */
+ #endif /* USE_DH */
+     }
+     if(section->ssl_options) {
+@@ -265,6 +267,23 @@ static int init_dh(SSL_CTX *ctx, LOCAL_O
+     DH_free(dh);
+     return 0; /* OK */
+ }
++
++static int init_ecdh(LOCAL_OPTIONS *section) {
++    EC_KEY *ecdh;
++
++    ecdh=EC_KEY_new_by_curve_name(section->curve);
++    if(!ecdh) {
++        sslerror("EC_KEY_new_by_curve_name");
++        s_log(LOG_ERR, "Cannot create curve %s",
++            OBJ_nid2ln(section->curve));
++        return 1; /* FAILED */
++    }
++    SSL_CTX_set_tmp_ecdh(section->ctx, ecdh);
++    EC_KEY_free(ecdh);
++    s_log(LOG_DEBUG, "ECDH initialized with curve %s",
++        OBJ_nid2ln(section->curve));
++    return 0; /* OK */
++}
+ #endif /* USE_DH */
+ 
+ /**************************************** loading certificate */
+diff -up stunnel-4.29/src/options.c.ecdh stunnel-4.29/src/options.c
+--- stunnel-4.29/src/options.c.ecdh	2016-01-12 17:24:11.299775315 +0100
++++ stunnel-4.29/src/options.c	2016-01-12 15:16:24.422616183 +0100
+@@ -741,6 +741,27 @@ static char *service_options(CMD cmd, LO
+         break;
+     }
+ 
++    /* curve */
++#define DEFAULT_CURVE NID_X9_62_prime256v1
++    switch(cmd) {
++    case CMD_INIT:
++        section->curve=DEFAULT_CURVE;
++        break;
++    case CMD_EXEC:
++        if(strcasecmp(opt, "curve"))
++            break;
++        section->curve=OBJ_txt2nid(arg);
++        if(section->curve==NID_undef)
++            return "Curve name not supported";
++        return NULL; /* OK */
++    case CMD_DEFAULT:
++        s_log(LOG_RAW, "%-22s = %s", "curve", OBJ_nid2ln(DEFAULT_CURVE));
++        break;
++    case CMD_HELP:
++        s_log(LOG_RAW, "%-22s = ECDH curve name", "curve");
++        break;
++    }
++
+     /* delay */
+     switch(cmd) {
+     case CMD_INIT:
+diff -up stunnel-4.29/src/prototypes.h.ecdh stunnel-4.29/src/prototypes.h
+--- stunnel-4.29/src/prototypes.h.ecdh	2016-01-12 15:18:06.728948190 +0100
++++ stunnel-4.29/src/prototypes.h	2016-01-12 15:17:45.513464596 +0100
+@@ -202,6 +202,7 @@ typedef struct local_options {
+ #endif /* OpenSSL-0.9.7 */
+     SSL_METHOD *client_method, *server_method;
+     SOCKADDR_LIST sessiond_addr;
++    int curve;
+ 
+         /* service-specific data for client.c */
+     int fd;        /* file descriptor accepting connections for this service */

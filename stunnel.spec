@@ -1,7 +1,7 @@
 Summary: An SSL-encrypting socket wrapper
 Name: stunnel
 Version: 4.29
-Release: 3%{?dist}.1
+Release: 6%{?dist}
 License: GPLv2
 Group: Applications/Internet
 URL: http://stunnel.mirt.net/
@@ -15,6 +15,10 @@ Source6: stunnel-pop3s-client.conf
 Patch0: stunnel-4.29-authpriv.patch
 Patch1: stunnel-4.29-sample.patch
 Patch2: stunnel-cve-2013-1762.patch
+Patch3: stunnel-4.29-noclose.patch
+Patch4: stunnel-4.29-log-version.patch
+Patch5: stunnel-4.29-tls.patch
+Patch6: stunnel-4.29-ecdh.patch
 Buildroot: %{_tmppath}/stunnel-root
 # util-linux is needed for rename
 BuildRequires: openssl-devel, pkgconfig, tcp_wrappers-devel, util-linux
@@ -28,7 +32,11 @@ in conjunction with imapd to create an SSL secure IMAP server.
 %setup -q
 %patch0 -p1 -b .authpriv
 %patch1 -p1 -b .sample
-%patch2 -p1
+%patch2 -p1 -b .ntlm-overflow
+%patch3 -p1 -b .noclose
+%patch4 -p1 -b .log-version
+%patch5 -p1 -b .tls
+%patch6 -p1 -b .ecdh
 
 iconv -f iso-8859-1 -t utf-8 < doc/stunnel.fr.8 > doc/stunnel.fr.8_
 mv doc/stunnel.fr.8_ doc/stunnel.fr.8
@@ -39,7 +47,7 @@ if pkg-config openssl ; then
 	CFLAGS="$CFLAGS `pkg-config --cflags openssl`";
 	LDFLAGS="`pkg-config --libs-only-L openssl`"; export LDFLAGS
 fi
-%configure --enable-fips --enable-ipv6 \
+%configure --enable-fips --enable-ipv6 --enable-dh \
 	CPPFLAGS="-UPIDFILE -DPIDFILE='\"%{_localstatedir}/run/stunnel.pid\"'"
 make LDADD="-pie -Wl,-z,defs,-z,relro"
 
@@ -81,16 +89,25 @@ rm -rf $RPM_BUILD_ROOT
 %exclude %{_sysconfdir}/stunnel/*
 
 %changelog
-* Mon Dec 8 2014 Avesh Agarwal <avagarwa@redhat.com> - 4.29-3.1
-Resolves: rhbz#1171879
+* Tue Jan 12 2016 Tomáš Mráz <tmraz@redhat.com> - 4.29-6
+- Add support for TLSv1.1 and TLSv1.2, change the default for client from
+  SSLv3 to all version support
+- Add support for DH and ECDH ciphersuites on server
 
-* Mon Apr 1 2013 Avesh Agarwal <avagarwa@redhat.com> - 4.29-3
-Resolves: CVE-2013-1762
+* Fri Jan 8 2016 Tomáš Mráz <tmraz@redhat.com> - 4.29-5
+- Fix first connection failure when configuration pulled from stdin (#927928)
+- Log the negotiated protocol version to the logs (#1275611)
 
-* Fri Jan 15 2010 Avesh Agarwal <avagarwa@redhat.com> - 4.29-2
+* Mon Dec 8 2013 Avesh Agrwal <avagarwa@redhat.com> - 4.29-4
+- Fix rhbz#1134451 (segfault in client mode on FIPS-enabled systems)
+
+* Mon Apr 1 2013 Avesh Agrwal <avagarwa@redhat.com> - 4.29-3
+- Fix CVE-2013-1762 (buffer overflow in NTLM handling)
+
+* Fri Jan 15 2010 Avesh Agrwal <avagarwa@redhat.com> - 4.29-2
 - Fixed a few problems in the sample config patch
 
-* Wed Jan 13 2010 Avesh Agarwal <avagarwa@redhat.com> - 4.29-1
+* Wed Jan 13 2010 Avesh Agrwal <avagarwa@redhat.com> - 4.29-1
 - New upstream realease 4.29
 - Updated authpriv and sample patches for the new release
 - Modified spec file to include dist tag
