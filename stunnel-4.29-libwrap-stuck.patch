@@ -1,0 +1,22 @@
+diff -up stunnel-4.29/src/libwrap.c.wrap-stuck stunnel-4.29/src/libwrap.c
+--- stunnel-4.29/src/libwrap.c.wrap-stuck	2009-10-01 09:51:53.000000000 +0200
++++ stunnel-4.29/src/libwrap.c	2016-10-17 15:01:48.239891235 +0200
+@@ -157,13 +157,11 @@ void auth_libwrap(CLI *c) {
+         }
+         busy[my_process]=0; /* mark the child process as free */
+         --num_busy; /* the child process has been released */
+-        if(num_busy==num_processes-1) { /* need to wake up a thread */
+-            retval=pthread_cond_signal(&cond); /* signal waiting threads */
+-            if(retval) {
+-                errno=retval;
+-                ioerror("pthread_cond_signal");
+-                longjmp(c->err, 1);
+-            }
++        retval=pthread_cond_signal(&cond); /* signal a waiting thread */
++        if(retval) {
++            errno=retval;
++            ioerror("pthread_cond_signal");
++            longjmp(c->err, 1);
+         }
+         retval=pthread_mutex_unlock(&mutex);
+         if(retval) {

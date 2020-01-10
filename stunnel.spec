@@ -1,7 +1,7 @@
 Summary: An SSL-encrypting socket wrapper
 Name: stunnel
 Version: 4.29
-Release: 6%{?dist}
+Release: 7%{?dist}
 License: GPLv2
 Group: Applications/Internet
 URL: http://stunnel.mirt.net/
@@ -19,6 +19,7 @@ Patch3: stunnel-4.29-noclose.patch
 Patch4: stunnel-4.29-log-version.patch
 Patch5: stunnel-4.29-tls.patch
 Patch6: stunnel-4.29-ecdh.patch
+Patch7: stunnel-4.29-libwrap-stuck.patch
 Buildroot: %{_tmppath}/stunnel-root
 # util-linux is needed for rename
 BuildRequires: openssl-devel, pkgconfig, tcp_wrappers-devel, util-linux
@@ -37,6 +38,7 @@ in conjunction with imapd to create an SSL secure IMAP server.
 %patch4 -p1 -b .log-version
 %patch5 -p1 -b .tls
 %patch6 -p1 -b .ecdh
+%patch7 -p1 -b .wrap-stuck
 
 iconv -f iso-8859-1 -t utf-8 < doc/stunnel.fr.8 > doc/stunnel.fr.8_
 mv doc/stunnel.fr.8_ doc/stunnel.fr.8
@@ -89,6 +91,9 @@ rm -rf $RPM_BUILD_ROOT
 %exclude %{_sysconfdir}/stunnel/*
 
 %changelog
+* Mon Oct 17 2016 Tomáš Mráz <tmraz@redhat.com> - 4.29-7
+- Fix stunnel stuck in libwrap condition
+
 * Tue Jan 12 2016 Tomáš Mráz <tmraz@redhat.com> - 4.29-6
 - Add support for TLSv1.1 and TLSv1.2, change the default for client from
   SSLv3 to all version support
