@@ -1,7 +1,7 @@
 Summary: An SSL-encrypting socket wrapper
 Name: stunnel
 Version: 4.29
-Release: 3%{?dist}
+Release: 3%{?dist}.1
 License: GPLv2
 Group: Applications/Internet
 URL: http://stunnel.mirt.net/
@@ -39,7 +39,7 @@ if pkg-config openssl ; then
 	CFLAGS="$CFLAGS `pkg-config --cflags openssl`";
 	LDFLAGS="`pkg-config --libs-only-L openssl`"; export LDFLAGS
 fi
-%configure --disable-fips --enable-ipv6 \
+%configure --enable-fips --enable-ipv6 \
 	CPPFLAGS="-UPIDFILE -DPIDFILE='\"%{_localstatedir}/run/stunnel.pid\"'"
 make LDADD="-pie -Wl,-z,defs,-z,relro"
 
@@ -81,13 +81,16 @@ rm -rf $RPM_BUILD_ROOT
 %exclude %{_sysconfdir}/stunnel/*
 
 %changelog
-* Mon Apr 1 2013 Avesh Agrwal <avagarwa@redhat.com> - 4.29-3
+* Mon Dec 8 2014 Avesh Agarwal <avagarwa@redhat.com> - 4.29-3.1
+Resolves: rhbz#1171879
+
+* Mon Apr 1 2013 Avesh Agarwal <avagarwa@redhat.com> - 4.29-3
 Resolves: CVE-2013-1762
 
-* Fri Jan 15 2010 Avesh Agrwal <avagarwa@redhat.com> - 4.29-2
+* Fri Jan 15 2010 Avesh Agarwal <avagarwa@redhat.com> - 4.29-2
 - Fixed a few problems in the sample config patch
 
-* Wed Jan 13 2010 Avesh Agrwal <avagarwa@redhat.com> - 4.29-1
+* Wed Jan 13 2010 Avesh Agarwal <avagarwa@redhat.com> - 4.29-1
 - New upstream realease 4.29
 - Updated authpriv and sample patches for the new release
 - Modified spec file to include dist tag
