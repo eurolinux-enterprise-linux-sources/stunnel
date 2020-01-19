@@ -1,7 +1,7 @@
 Summary: An SSL-encrypting socket wrapper
 Name: stunnel
 Version: 4.56
-Release: 2%{?dist}
+Release: 4%{?dist}
 License: GPLv2
 Group: Applications/Internet
 URL: http://www.stunnel.org/
@@ -84,6 +84,12 @@ rm -rf $RPM_BUILD_ROOT
 %exclude %{_sysconfdir}/stunnel/*
 
 %changelog
+* Fri Jan 24 2014 Daniel Mach <dmach@redhat.com> - 4.56-4
+- Mass rebuild 2014-01-24
+
+* Fri Dec 27 2013 Daniel Mach <dmach@redhat.com> - 4.56-3
+- Mass rebuild 2013-12-27
+
 * Mon Aug 5 2013 Avesh Agarwal <avagarwa@redhat.com> - 4.56-2
 - Ftp mirrors for NA does not work, so changing source code
   URLs to the correct ones.
