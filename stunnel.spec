@@ -1,7 +1,7 @@
 Summary: An SSL-encrypting socket wrapper
 Name: stunnel
 Version: 4.56
-Release: 6%{?dist}
+Release: 2%{?dist}
 License: GPLv2
 Group: Applications/Internet
 URL: http://www.stunnel.org/
@@ -15,11 +15,6 @@ Source5: pop3-redirect.xinetd
 Source6: stunnel-pop3s-client.conf
 Patch0: stunnel-4-authpriv.patch
 Patch1: stunnel-4-sample.patch
-Patch2: stunnel-4.56-doc-accept.patch
-Patch3: stunnel-4.56-doc-curve.patch
-Patch4: stunnel-4.56-log-version.patch
-Patch5: stunnel-4.56-pollhup.patch
-Patch6: stunnel-4.56-tls.patch
 Buildroot: %{_tmppath}/stunnel-root
 # util-linux is needed for rename
 BuildRequires: openssl-devel, pkgconfig, tcp_wrappers-devel, util-linux
@@ -37,11 +32,6 @@ in conjunction with imapd to create an SSL secure IMAP server.
 %setup -q
 %patch0 -p1 -b .authpriv
 %patch1 -p1 -b .sample
-%patch2 -p1 -b .accept
-%patch3 -p1 -b .curve
-%patch4 -p1 -b .log-version
-%patch5 -p1 -b .pollhup
-%patch6 -p1 -b .tls
 
 iconv -f iso-8859-1 -t utf-8 < doc/stunnel.fr.8 > doc/stunnel.fr.8_
 mv doc/stunnel.fr.8_ doc/stunnel.fr.8
@@ -94,20 +84,6 @@ rm -rf $RPM_BUILD_ROOT
 %exclude %{_sysconfdir}/stunnel/*
 
 %changelog
-* Fri Apr  1 2016 Tomáš Mráz <tmraz@redhat.com> - 4.56-6
-- Do not lose data due to mishandled POLLHUP (#1170722)
-
-* Thu Mar 31 2016 Tomáš Mráz <tmraz@redhat.com> - 4.56-5
-- Allow TLS 1.1 and TLS 1.2 in FIPS mode
-- Documentation fixes of curve and accept/connect options (#1197340)
-- Add negotiated protocol version to the logs (#1275613)
-
-* Fri Jan 24 2014 Daniel Mach <dmach@redhat.com> - 4.56-4
-- Mass rebuild 2014-01-24
-
-* Fri Dec 27 2013 Daniel Mach <dmach@redhat.com> - 4.56-3
-- Mass rebuild 2013-12-27
-
 * Mon Aug 5 2013 Avesh Agarwal <avagarwa@redhat.com> - 4.56-2
 - Ftp mirrors for NA does not work, so changing source code
   URLs to the correct ones.
