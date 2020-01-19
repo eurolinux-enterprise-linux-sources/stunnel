@@ -1,0 +1,12 @@
+diff -up stunnel-4.56/src/options.c.tls stunnel-4.56/src/options.c
+--- stunnel-4.56/src/options.c.tls	2015-11-12 16:10:44.000000000 +0100
++++ stunnel-4.56/src/options.c	2016-03-31 17:41:11.629988843 +0200
+@@ -1682,7 +1682,7 @@ static char *parse_service_option(CMD cm
+             return "Incorrect version of SSL protocol";
+         return NULL; /* OK */
+     case CMD_END:
+-#ifdef USE_FIPS
++#if 0
+         if(new_global_options.option.fips &&
+                 ((section->option.client &&
+                     section->client_method!=(SSL_METHOD *)TLSv1_client_method()) ||

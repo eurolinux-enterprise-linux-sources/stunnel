@@ -1,0 +1,36 @@
+diff -up stunnel-4.56/doc/stunnel.html.accept stunnel-4.56/doc/stunnel.html
+--- stunnel-4.56/doc/stunnel.html.accept	2015-11-12 16:10:44.446099618 +0100
++++ stunnel-4.56/doc/stunnel.html	2016-03-31 17:19:13.648400089 +0200
+@@ -379,7 +379,7 @@ below.</p>
+ <p>If no host specified, defaults to all IPv4 addresses for the local host.</p>
+ <p>To listen on all IPv6 addresses use:</p>
+ <pre>
+-    connect = :::port</pre>
++    accept = :::port</pre>
+ </dd>
+ <dt><strong><a name="capath_directory" class="item"><strong>CApath</strong> = directory</a></strong></dt>
+ 
+diff -up stunnel-4.56/doc/stunnel.pod.accept stunnel-4.56/doc/stunnel.pod
+--- stunnel-4.56/doc/stunnel.pod.accept	2015-11-12 16:10:44.447099641 +0100
++++ stunnel-4.56/doc/stunnel.pod	2016-03-31 17:19:13.649400112 +0200
+@@ -349,7 +349,7 @@ If no host specified, defaults to all IP
+ 
+ To listen on all IPv6 addresses use:
+ 
+-    connect = :::port
++    accept = :::port
+ 
+ =item B<CApath> = directory
+ 
+diff -up stunnel-4.56/doc/stunnel.8.accept stunnel-4.56/doc/stunnel.8
+--- stunnel-4.56/doc/stunnel.8.accept	2015-11-12 16:10:44.446099618 +0100
++++ stunnel-4.56/doc/stunnel.8	2016-03-31 17:19:13.647400065 +0200
+@@ -336,7 +336,7 @@ If no host specified, defaults to all IP
+ To listen on all IPv6 addresses use:
+ .Sp
+ .Vb 1
+-\&    connect = :::port
++\&    accept = :::port
+ .Ve
+ .IP "\fBCApath\fR = directory" 4
+ .IX Item "CApath = directory"

@@ -1,0 +1,44 @@
+diff -up stunnel-4.56/doc/stunnel.html.curve stunnel-4.56/doc/stunnel.html
+--- stunnel-4.56/doc/stunnel.html.curve	2016-03-31 17:19:13.000000000 +0200
++++ stunnel-4.56/doc/stunnel.html	2016-03-31 17:22:48.552416398 +0200
+@@ -452,8 +452,8 @@ c_rehash the directory on upgrade from <
+ <dt><strong><a name="curve_nid" class="item"><strong>curve</strong> = nid</a></strong></dt>
+ 
+ <dd>
+-<p>specify ECDH curve name</p>
+-<p>To get a list of supported cuves use:</p>
++<p>specify ECDH curve name for server</p>
++<p>To get a list of supported curves use:</p>
+ <pre>
+     openssl ecparam -list_curves</pre>
+ <p>default: prime256v1</p>
+diff -up stunnel-4.56/doc/stunnel.pod.curve stunnel-4.56/doc/stunnel.pod
+--- stunnel-4.56/doc/stunnel.pod.curve	2016-03-31 17:19:13.000000000 +0200
++++ stunnel-4.56/doc/stunnel.pod	2016-03-31 17:21:59.705276204 +0200
+@@ -427,9 +427,9 @@ This file contains multiple CRLs, used w
+ 
+ =item B<curve> = nid
+ 
+-specify ECDH curve name
++specify ECDH curve name for server
+ 
+-To get a list of supported cuves use:
++To get a list of supported curves use:
+ 
+     openssl ecparam -list_curves
+ 
+diff -up stunnel-4.56/doc/stunnel.8.curve stunnel-4.56/doc/stunnel.8
+--- stunnel-4.56/doc/stunnel.8.curve	2016-03-31 17:19:13.000000000 +0200
++++ stunnel-4.56/doc/stunnel.8	2016-03-31 17:23:15.072035422 +0200
+@@ -406,9 +406,9 @@ Certificate Revocation Lists file
+ This file contains multiple CRLs, used with the \fIverify\fR.
+ .IP "\fBcurve\fR = nid" 4
+ .IX Item "curve = nid"
+-specify \s-1ECDH\s0 curve name
++specify \s-1ECDH\s0 curve name for server
+ .Sp
+-To get a list of supported cuves use:
++To get a list of supported curves use:
+ .Sp
+ .Vb 1
+ \&    openssl ecparam \-list_curves
